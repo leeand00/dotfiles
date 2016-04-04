@@ -86,6 +86,67 @@ function! GoogleFormsStep2()
 	%s/$/]);/g
 endfunction
 
-function! NormalTest()
-	normal n
+" CCure Setup
+function! DCWSetup()
+	call CCure_Dup_lname()
+	call CCure_DCW()
+	call CCure_Badge_Layout()
+	call CCure_PortraitFile()
+endfunction
+
+
+" 1
+function! CCure_Dup_lname()
+	'<,'>s/^[A-Za-z]\+ \([A-Za-z]\+\)/\0,\1,/
+endfunction
+
+" 2
+function! CCure_DCW()
+	'<,'>s/$/,Direct Care Worker,/
+endfunction
+
+" 2
+function! CCure_RPW()
+	'<,'>s/$/Program Worker,Residential,
+endfunction
+
+function! CCure_Floater()
+	'<,'>s/$/Direct Care Worker,Floating,
+endfunction
+
+" 4
+function! CCure_Badge_Layout()
+	'<,'>s/$/Vertical Unlimited Care Providers,/
+endfunction
+
+" 5
+function! CCure_PortraitFile()
+	'<,'>s/^\([A-Za-z]\+\) \([A-Za-z]\+\).*$/\0\"\2, \1.jpg\",/
+endfunction
+
+function! CCure_FillInPath()
+	" These emulates key presses
+	
+	" Find the third instance of a comma.
+	normal 3f,  
+
+	" 1. Move right one character
+	" 2. Go into Visual Mode, Move to the next comma
+	"    copy the selected text to the clipboard.
+	" 3. Find the next "
+	" 4. Paste from the clipboard, move one right one character,
+	"    insert and put an 's' at the end of the name of the position.
+	" 5. move one character to the right, type a '\'
+	" 6. Move to the previous match
+	" 7. Move two characters to the right
+	" 8. Type F:\ID BADGES\
+	" 9. Move to the end of the line and delete the last character.
+	normal lvnh"+y
+	normal f"
+	normal "+plis
+	normal li\
+	normal N
+	normal ll
+	normal iF:\ID BADGES\
+	normal $x
 endfunction
