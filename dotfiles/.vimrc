@@ -75,6 +75,39 @@ function! AddTW5Links(tiddlerSetName)
 	:exe '%s/\(*\+\)\(\[\[\(.*\)\)\]\]/\1[[\3|\3 - '.a:tiddlerSetName.']]/g'
 endfunction
 
+" Format a Tiddywiki5 Matrix Table
+" 
+" After calling Excel2TW5(), 
+" If your table has a grid of values, 
+" this function centers them and right justifies the
+" first column.
+function! FormatTW5MatrixTable()
+	" Shift everything to the right.
+	%s/|\(.\{-\}\)/| \1 /g
+
+	" Remove whitespace at the end.
+	%s/  $//g
+
+	" Center everything.
+	%s/\(.\)|/\1 |/g
+
+	" Call this function for every line in the table
+	%g/.*/call FormatTW5MatrixTableRightJustify()
+endfunction
+
+function FormatTW5MatrixTableRightJustify()
+	" Go to the first line.
+	normal ^
+
+	" Jump to the first pipe after the cursor.
+	normal 1f|
+
+	" Move left and delete the space, then move
+	" down a line.
+	normal hxj
+endfunction
+
+
 " 
 function! GoogleFormsStep1()
 	%s/^/\tcopyBody.replaceText('/g
