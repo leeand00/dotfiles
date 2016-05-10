@@ -116,7 +116,7 @@ endfunction
 
 " 4
 function! CCure_Badge_Layout()
-	'<,'>s/$/Vertical Unlimited Care Providers,/
+	'<,'>s/$/AUCP ClearCare,/
 endfunction
 
 " 5
