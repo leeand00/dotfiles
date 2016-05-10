@@ -154,3 +154,10 @@ function! CCure_FillInPath()
 	normal iF:\ID BADGES\
 	normal $x
 endfunction
+
+function! CCure_FillInFloaterPath()
+	normal ^
+	normal 5f,
+	normal ll
+	normal iF:\ID Badges\Floaters\
+endfunction
