@@ -126,12 +126,16 @@ endfunction
 
 function! CCure_FillInPath()
 	" These emulates key presses
-	
+
+	" Move the cursor to the beginning of the line.
+	normal ^
+
 	" Find the third instance of a comma.
 	normal 3f,  
 
 	" 1. Move right one character
-	" 2. Go into Visual Mode, Move to the next comma
+	" 2. Go into Visual Mode, Move to the next comma; ';' matches the next
+	"    3f,
 	"    copy the selected text to the clipboard.
 	" 3. Find the next "
 	" 4. Paste from the clipboard, move one right one character,
@@ -141,12 +145,12 @@ function! CCure_FillInPath()
 	" 7. Move two characters to the right
 	" 8. Type F:\ID BADGES\
 	" 9. Move to the end of the line and delete the last character.
-	normal lvnh"+y
+	normal lv;h"+y
 	normal f"
 	normal "+plis
 	normal li\
-	normal N
-	normal ll
+	normal ,
+	normal l
 	normal iF:\ID BADGES\
 	normal $x
 endfunction
