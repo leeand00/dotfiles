@@ -1,7 +1,65 @@
 set nocompatible
+" BEGIN Add Vundle
+filetype off
+
+" set the runtime path to include Vundle and initialize
+set rtp+=~/.vim/bundle/Vundle.vim
+call vundle#begin()
+
+" alternatively, pass a path where Vundle should install plugins
+"call vundle#begin('~/some/path/here')
+
+" let Vundle manage Vundle, required
+Plugin 'gmarik/Vundle.vim'
+Plugin 'tmhedberg/SimpylFold'
+Plugin 'Valloric/YouCompleteMe'
+
+" Add all your plugins here (note older versions of Vundle used Bundle instead of Plugin)
+
+call vundle#end() 	  " Required
+filetype plugin indent on " Required
+" END Add Vundle
+
 source $VIMRUNTIME/vimrc_example.vim
 " source $VIMRUNTIME/mswin.vim
 " behave mswin
+
+" BEGIN Python indent
+au BufNewFile.BufRead *.py
+    \ set tabstop=4
+    \ set softtabstop=4
+    \ set shiftwidth=4
+    \ set textwidth=79
+    \ set expandtab
+    \ set autoindent
+    \ set fileformat=unix
+" END Python indent
+
+" BEGIN Python Flag Unnecessary Whitespace
+" This will mark extra whitespace as bad, and probably color it red.
+" END Python Flag Unnecessary Whitespace
+
+set encoding=utf-8
+
+command! -complete=shellcmd -nargs=+ Shell call s:RunShellCommand(<q-args>)
+function! s:RunShellCommand(cmdline)
+  echo a:cmdline
+  let expanded_cmdline = a:cmdline
+  for part in split(a:cmdline, ' ')
+     if part[0] =~ '\v[%#<]'
+        let expanded_part = fnameescape(expand(part))
+        let expanded_cmdline = substitute(expanded_cmdline, part, expanded_part, '')
+     endif
+  endfor
+  botright new
+  setlocal buftype=nofile bufhidden=wipe nobuflisted noswapfile nowrap
+  call setline(1, 'You entered:    ' . a:cmdline)
+  call setline(2, 'Expanded Form:  ' .expanded_cmdline)
+  call setline(3,substitute(getline(2),'.','=','g'))
+  execute '$read !'. expanded_cmdline
+  setlocal nomodifiable
+  1
+endfunction
 
 set diffexpr=MyDiff()
 function MyDiff()
@@ -34,6 +92,47 @@ set bs=2
 
 set nocp
 filetype plugin on
+
+" Include abbreviations for adding skills to a filter.
+source ~/.vimrc_ab_skills
+
+
+" set the CTRL+X CTRL+K dictionary so that we can do autocomplete on job
+" skills.
+set dict+=/home/leeand00/Documents/lifehacker\ organized/docs/jobhunt/skills_list/skills_list.txt
+set iskeyword+=-
+
+
+
+function! GetJobLines(skillz)
+
+	" 1. Create a new buffer for the output
+	enew
+
+	" 2. Change directory to location of said script
+	cd /home/leeand00/Documents/lifehacker\ organized/docs/jobhunt/jobhuntshared/src/tiddlerpull/
+
+        " execute "read!echo ". shellescape(a:skillz)
+
+	" 3. Run said script with argument
+	execute "read!cat sec.txt | xargs -I{} -n 1 node ./index.js skills=". fnameescape(a:skillz) ." job=\"[[Database Analyst - Net Tech - MIS - Help Desk]]\" sec=\"{}\""
+	execute "read!cat job.txt | xargs -I{} -n 1 node ./index.js skills=". fnameescape(a:skillz) ."  job=\"[[{}]]\" "
+
+	" 4. Clean out those node deprecation errors (probably ought to fix
+	" that in the actual script though)
+	g/(node)/d
+endfunction
+
+function! SomeShit()
+
+	read!cat sec.txt | xargs -I{} -n 1 node ./index.js skills="  a:skillz  "job=\"[[Database Analyst - Net Tech - MIS - Help Desk]]\" sec=\"{}\""
+	execute "read!cat job.txt | xargs -I{} -n 1 node ./index.js skills=" shellescape(a:skillz) "job=\"[[{}]]\""
+endfunction
+
+function! CleanTw5CP()
+	g/^$/d
+	%s/\W\{4\}//g
+endfunction
 
 " Convert a table from pasted from excel into Tiddlywiki5 format.
 function! Excel2Tw5()
@@ -74,39 +173,6 @@ endfunction
 function! AddTW5Links(tiddlerSetName) 
 	:exe '%s/\(*\+\)\(\[\[\(.*\)\)\]\]/\1[[\3|\3 - '.a:tiddlerSetName.']]/g'
 endfunction
-
-" Format a Tiddywiki5 Matrix Table
-" 
-" After calling Excel2TW5(), 
-" If your table has a grid of values, 
-" this function centers them and right justifies the
-" first column.
-function! FormatTW5MatrixTable()
-	" Shift everything to the right.
-	%s/|\(.\{-\}\)/| \1 /g
-
-	" Remove whitespace at the end.
-	%s/  $//g
-
-	" Center everything.
-	%s/\(.\)|/\1 |/g
-
-	" Call this function for every line in the table
-	%g/.*/call FormatTW5MatrixTableRightJustify()
-endfunction
-
-function FormatTW5MatrixTableRightJustify()
-	" Go to the first line.
-	normal ^
-
-	" Jump to the first pipe after the cursor.
-	normal 1f|
-
-	" Move left and delete the space, then move
-	" down a line.
-	normal hxj
-endfunction
-
 
 " 
 function! GoogleFormsStep1()
@@ -149,7 +215,7 @@ endfunction
 
 " 4
 function! CCure_Badge_Layout()
-	'<,'>s/$/AUCP ClearCare,/
+	'<,'>s/$/Vertical Unlimited Care Providers,/
 endfunction
 
 " 5
@@ -159,16 +225,12 @@ endfunction
 
 function! CCure_FillInPath()
 	" These emulates key presses
-
-	" Move the cursor to the beginning of the line.
-	normal ^
-
+	
 	" Find the third instance of a comma.
 	normal 3f,  
 
 	" 1. Move right one character
-	" 2. Go into Visual Mode, Move to the next comma; ';' matches the next
-	"    3f,
+	" 2. Go into Visual Mode, Move to the next comma
 	"    copy the selected text to the clipboard.
 	" 3. Find the next "
 	" 4. Paste from the clipboard, move one right one character,
@@ -178,19 +240,12 @@ function! CCure_FillInPath()
 	" 7. Move two characters to the right
 	" 8. Type F:\ID BADGES\
 	" 9. Move to the end of the line and delete the last character.
-	normal lv;h"+y
+	normal lvnh"+y
 	normal f"
 	normal "+plis
 	normal li\
-	normal ,
-	normal l
+	normal N
+	normal ll
 	normal iF:\ID BADGES\
 	normal $x
-endfunction
-
-function! CCure_FillInFloaterPath()
-	normal ^
-	normal 5f,
-	normal ll
-	normal iF:\ID Badges\Floaters\
 endfunction

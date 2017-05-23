@@ -1,0 +1,76 @@
+function! InitJobAutoComplete()
+" Set autocomplete items for all jobs...
+	ab anti-virus, sep,
+	ab api, api,async.js,fedex-api,gis,google-analytics,google-maps,handlebars,jquery,windows-forms,
+	ab build-tool, ant,grunt,maven2,
+	ab cms, joomla,rvista,sharepoint,wordpress,
+	ab database, database,csv,erd,locking,reporting,database-administration,
+	ab databases, ms-access,mysql,oracle,sql-server-2008,visual-fox-pro,
+	ab department, finance,
+	ab device, iPad,iPhone,printers,server,workstation,
+	ab domestic, cleaning,cooking,
+	ab framework, framework,appfuse,spring,struts,tiles,twitter-bootstrap3,
+	ab it, backup,help-desk,holiday,inventory,it-maintenance,spiceworks,mip,moodle,abra-suite-9.2,visitrax,allworx,
+	ab load-testing, jmeter,
+	ab networking, networking,network-maintenance,pfsense,proxy,smb,squid,squid-guard,sync-center,vpn,
+	ab non-profit, fundraising,recruiting,
+	ab office-application, adobe-acrobat-pro,outlook,
+	ab office-suite, google-docs,mail-merge,ms-office,
+	ab os, iOS,linux,turnkey-linux,windows-7,windows-server-2008-r2,smb,sync-center,powershell,ntfs-permissions,ssh,stunnel,
+	ab physical-security, building-security,ccure,
+	ab programming-concepts, design-pattern,
+	ab programming-editor, vim,
+	ab programming-lang, C#,c++,java,struts,appfuse,tiles,node.js,oop,php,regex,ruby,sql,stored-proc,t-sql,uml,
+	ab shell-scripting, powershell,bash,
+	ab quality, leadership,people-skills,geriatric,youth,weekend,
+	ab security, security,keberos,ntfs-permissions,ssh,stunnel,
+	ab social-media, social-media,facebook,twitter,
+	ab system, mip,moodle,abra-suite-9.2,visitrax,allworx,spiceworks,software-maintenance,software-monitoring,
+	ab accounting-system, mip,
+	ab education-system, moodle,
+	ab hr-system, abra-suite-9.2,
+	ab scheduling-system, visitrax,
+	ab sip-phone-system, allworx,
+	ab ticketing-system, spiceworks,
+	ab tax, irs,state,
+	ab unit-testing, js-test-driver,junit,
+	ab vcs, cvs,etckeeper,git,hg,
+	ab verb, administration,automation,migration,payroll,procurement,punctuality,singing,software-development-life-cycle,software-maintenance,travel,
+	ab web-development, ajax,back-end,css,form-validation,front-end,geolocation,j2ee,javascript,json,mvc,portal,portlet,responsive-web-design,spring-mvc,
+	ab web-server, web-server,apache2,mod_rewrite,
+	ab json-webservices, json-webservices,social-media,
+	ab xml-web-service, xml-web-service,
+	ab windows-administration, Active-Directory,
+endfunction
+
+" Init the Skils list for the job hunt so that you can press CTRL+X CTRL+K
+" dictionary so that we can do autocomplete with a dropdown when adding
+" skills.
+function! InitSkillsLists()
+
+	" set the CTRL+X CTRL+K dictionary so that we can do autocomplete on job
+	" skills.
+	set dict+=/home/leeand00/Documents/lifehacker\ organized/docs/jobhunt/skills_list/skills_list.txt
+	set iskeyword+=-
+
+endfunction
+
+" Call this method to fill a vim buffer with skills listed from a filter.
+function! GetJobLines(skillz)
+
+	" 1. Create a new buffer for the output
+	enew
+
+	" 2. Change directory to location of said script
+	cd /home/leeand00/Documents/lifehacker\ organized/docs/jobhunt/jobhuntshared/src/tiddlerpull/
+
+        " execute "read!echo ". shellescape(a:skillz)
+
+	" 3. Run said script with argument
+	execute "read!cat sec.txt | xargs -I{} -n 1 node ./index.js skills=". fnameescape(a:skillz) ." job=\"[[Database Analyst - Net Tech - MIS - Help Desk]]\" sec=\"{}\""
+	execute "read!cat job.txt | xargs -I{} -n 1 node ./index.js skills=". fnameescape(a:skillz) ."  job=\"[[{}]]\" "
+
+	" 4. Clean out those node deprecation errors (probably ought to fix
+	" that in the actual script though)
+	g/(node)/d
+endfunction
