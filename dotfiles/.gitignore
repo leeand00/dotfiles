@@ -1,0 +1,10 @@
+# Note: To use this globaly, copy it to ~/.gitignore and run 
+#       git config --global core.excludesfile ~/.gitignore
+
+# Ignore node_modules folder...
+node_modules
+.vscode/
+npm-debug.log
+
+# Ignore vim swapfiles
+*.sw?
