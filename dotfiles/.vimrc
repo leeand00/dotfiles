@@ -243,3 +243,31 @@ function! CCure_FillInPath()
 	normal iF:\ID BADGES\
 	normal $x
 endfunction
+
+" 1. Input a text file formatted with different tiddlers
+"    for jq to slurp up and parse into json for tw5.
+function! TW5GenNUpload(txtFile, user, host, wikipath)
+
+	let l:tempJSONFile = tempname() . '.json'
+	let l:username_hostname = a:user . "@" . a:host
+
+
+	" ! jq -Rs . ~/Documents/tw5jqimport/test1.txt | jq -s ' . [] | split("----")' | jq '. [] | gsub("^\n\n";"")' | jq -s '. []' | jq -s '. [] | split("\n") | map(select(length > 0)) | (.[0] | gsub("^!";"") ) as $title | (.[1] | gsub("^%";"") ) as $order | ( .[2] | gsub("^;";"") ) as $caption | ( .[3] | gsub("&";"" ) ) as $tags | (.[4:length] | join ("\n")) as $text | {"title":$title, "text":$text, "caption":$caption, "order":$order, "tags":$tags }' | jq -s '.' > /tmp/bob.json
+	:exec "! jq -Rs . " . a:txtFile . "| jq -s \' . [] | split(\"----\")\' | jq \'. [] | gsub(\"^\\n\\n\";\"\")\' | jq -s \'. []\' | jq -s \'. [] | split(\"\\n\") | map(select(length > 0)) | (.[0] | gsub(\"^\\!\";\"\") ) as $title | (.[1] | gsub(\"^\\%\";\"\") ) as $order | (.[2] | gsub(\"^;\";\"\") ) as $caption | (.[3] | gsub(\"^&\";\"\") ) as $tags | (.[4:length] | join(\"\\\n\")) as $text | { \"title\":$title, \"order\":$order, \"caption\":$caption, \"tags\":$tags, \"text\":$text } \' | jq -s \'.\' > " . l:tempJSONFile 
+
+	" 2. Create the file remotely in the /tmp path on the wiki machine...
+	:exec "! ssh " . username_hostname .  " \"  mkdir -p " . fnamemodify(l:tempJSONFile, ":h") . "\""
+
+	" 3. Transfer the file..
+	:exec "! scp " . l:tempJSONFile . " " . username_hostname . ":" .  l:tempJSONFile
+
+	" 4. Load the file with tiddlywiki --load l:tempJSONFile remotely...
+	:exec "! ssh " . username_hostname .  " \" tiddlywiki " . wikipath . " --load " . l:tempJSONFile . "\" >> /tmp/tw5load.log"
+	
+	" 5. Refresh your browser...
+
+	echom l:tempJSONFile
+endfunction
+
+" NOTE: Remap this when you write use a new file for tw5.
+map <F6> :call TW5GenNUpload("dotfiles/dotfiles/tw5article_test.txt", "pi", "pi.leerdomain.lan", "/home/pi/tw5/linux")

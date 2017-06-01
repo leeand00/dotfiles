@@ -1,0 +1,392 @@
+!Using ssh agent
+%
+;
+&[[article]] [[ssh]] [[ssh-agent]]
+
+[[link|http://rabexc.org/posts/using-ssh-agent]]
+
+!Using an ssh-agent, or how to type your ssh password once, safely.
+
+If you work a lot on linux and use `ssh` often, you quickly realize that typing your password every time you connect to a remote host gets annoying.
+
+Not only that, it is not the best solution in terms of security either:
+
+*Everytime you type a password, a snooper has an extra chance to see it.
+*Every host you ssh to with which you use your password, well, has to know your password.  Or hash your password.  In any case, you probablyu have typed your password on that host once or twice in your life (even if just for passwd, for example).
+*If you are victim of a Man In The Middle attack, your password may get stolen.  Sure, you can verify the fingerprint on every host you connect to, and disabled authentication without challenge and response in your ssh config.  But what if there was a way you didn't have to do that?
+
+This is where key authentication comes into play:  instead of using a password to log in a remote host, you can use a pair of keys and well, `ssh-agent`.
+
+
+
+<<tabs "[tag[Using ssh agent]sort[order]]">>
+
+----
+
+!Setup sshkeygen - Using ssh agent 
+%1
+;1 (Generate keys)
+&[[Using ssh agent]]
+
+
+<<tabs "[tag[Setup sshkeygen - Using ssh agent]sort[order]]">>
+
+----
+
+!Using ssh keys - Using ssh agent
+%1
+;1 (intro)
+&[[Setup sshkeygen - Using ssh agent]]
+
+#Generate a pair of keys with `ssh-keygen`.  This will create two files:
+##''A public key (normally `.pub`, more like a lock)''
+##*Copy your public key into any system you need to have access to.
+##**You can use `rsync`, `scp`, 
+##**or type it manually,
+##**or well, use the tool provided with openssh: `ssh-copy-od`
+##*''Note:'' That you could even publish your public key online:
+##**There's no (known) way to go from a public key to your private key and to get access to any of your systems.
+##***And if there was a way, well, public key encryptiuon would be dead, and your bank account likely empty.
+##''A private key (more like a physical key)''
+##*The private key is normally kept encrypted on disk.
+##**After all, it's well, supposed to be private
+##*`ssh-keygen` will ask you to insert a password.  Note that this password will ber used to `decrypt` the private key from your local disk, and never sent to anyone.  And again, as the same suggests you should never disclose your private key.
+
+and ... done.  That's it really, just try it out.
+
+----
+
+!using ssh-keygen - Using ssh agent
+%2
+;2 (ssh-keygen)
+&[[Setup sshkeygen - Using ssh agent]]
+
+```
+#Generate and encrypt the key first.
+$ ssh-keygen
+Generating public/private rsa key pair.
+Enter file in which to save the key (/home/test/.ssh/id_rsa):
+Created directory '/home/test/.ssh'.
+Enter passphrase (empty for no passphrase):
+Enter the same passphrase again:
+Your identification has been saved in /home/test/.ssh/id_rsa.pub.
+The key fingerprint is:
+ec:38:bc:94:35:34:55:2b:9a:8d:44:d8:f0:93:09:fb test@joshua
+The key's randomart image is:
++--[ RSA 2048]  --+
+|      o+. ...    |
+|      .=.+   .   |
+|      . O . .    |
+|       = B .     |
+|        E .      |
+|     . = .       |
+|      * .        |
+|     . o         |
+|      .          |
+```
+
+----
+
+!copying public key to the server - Using ssh agent
+%3
+;3 (ssh-copy-id)
+&[[Setup sshkeygen - Using ssh agent]]
+
+```
+# Copy the public key to my remote server, conveniently called
+# 'name-of-remote-server'.  Note that it will ask you your password
+# on the remote server.
+
+$ ssh-copy-id name-of-remote-server
+The authenticity of host 'name-of-remote-server (144.144.144.144)' can't be established.
+ECDSA key fingerprint is 9f:1e:ab:b6:ff:71:88:a9:98:7a:8d:f1:42:7d:8c:20.
+Are you sure you want to continue connecting (yes/no)? yes
+/usr/bin/ssh-copy-id: INFO: attempting to log in with the new key(s), to filter out any that are already installed
+/usr/bin/ssh-copy-id: INFO: 1 key(s) remain to be installed -- if you are prompted now it is to install the new keys
+Password:
+...
+
+# Try now to login into the remote server. SSH will now ask you 
+# for your passphrase, what you used to encrypt your private key on
+# disk, what you gave to ssh-keygen above.
+$ ssh name-of-remote-server
+```
+
+----
+
+!login with key to the server - Using ssh agent
+%4
+;4 (logging in to server with key)
+&[[Setup sshkeygen - Using ssh agent]]
+
+```
+# Let's say you have multiple keys, or you decided to store your key
+# in a non-standard place, and want to provide a specific one for a given 
+# host, you can use the -i option.
+$ ssh -i /home/test/.ssh/id_rsa name-of-remote-server
+```
+
+----
+
+!advantages of using a key - Using ssh agent
+%5
+;5 (advantages)
+&[[Setup sshkeygen - Using ssh agent]]
+
+#Your passphrase never leaves your local machine.  Which generally makes it
+harder to steal.
+#You don't have a password to remember for each different host. Or...
+#...you don't have the same password for all hosts you connect to (depending
+on your password management philosophies).
+#If somebody steals your passphrase, there's not much he can do without your
+private key.
+#If you fear somebody has seen your passphrase, you can change it easily.
+''Once.'' And for all.
+#If there is a "man in the middle", he may be able to hijack your session.
+''Once'' (and well, feast on your machine, but that's another story).
+#*If a "man in the middle" got hold of your password instead, he could enjoy
+your machine later, more stealthy, for longer, and may be be able to use your
+password on other machines.
+#They just work.  Transparently, most of the times.
+#*With:
+#**`git`
+#**`rsync`
+#**`scp`
+#**..and all their friends.
+#You can use an agent to make your life happier and easier.
+
+----
+
+!Setup sshagent - Using ssh agent 
+%2
+;2 (Setup sshagent)
+&[[Using ssh agent]]
+
+<<tabs "[tag[Setup sshagent - Using ssh agent]sort[order]]">>
+
+----
+
+!Your agent Friend - Setup sshagent - Using ssh agent 
+%1
+;1 (intro)
+&[[Setup sshagent - Using ssh agent]]
+
+''Your agent friend''
+
+Ok. So you have read this much of the article, and still we have not solved
+the problem of having to type your password every freaking time, have we?
+
+That's where an agent comes in handy.  Think of it as a safe box you have to
+start in the background that holds your keys, ready to be used.
+
+----
+
+!Start ssh-agent - Setup sshagent - Using ssh agent 
+%2
+;2 (stat ssh-agent)
+&[[Setup sshagent - Using ssh agent]]
+
+You start an `ssh-agent` by running something like this:
+
+```
+$ eval `ssh-agent`
+```
+
+in your shell.  
+
+----
+
+!add keys - Setup sshagent - Using ssh agent 
+%3
+;3 (add keys)
+&[[Setup sshagent - Using ssh agent]]
+
+You can then feed it keys, with `ssh-add` like:
+
+```
+$ ssh-add /home/test/.ssh/id_rsa
+```
+
+or, if your key is in the default location, you can just:
+
+```
+$ ssh-add
+```
+
+`ssh-add` will ask you your passphrase, and store your private key into the
+`ssh-agent` you started eariler.  `ssh` and all it's friends (including `git`,
+`rsync`, `scp`...) will just magically use your agent friend when you try to
+ssh somewhere.  Convenient isn't it?
+
+Assuming you added all the keys you need, you can now `ssh` to any host, as
+many times as you like, without ever ever having to retype your password.
+
+----
+
+!agent forwarding - Using ssh agent
+%3
+;3 (agent forwarding)
+&[[Using ssh agent]]
+
+<<tabs "[tag[agent forwarding - Using ssh agent]sort[order]]">>
+
+----
+
+!Wrong way - agent forwarding - Using ssh agent 
+%1
+;1 (no agent forwarding)
+&[[agent forwarding - Using ssh agent]]
+
+Not only that, but you can exploit `agent forwarding` to jump from one host to
+another.
+
+*Let's say you have to connect to a server at your office.
+*Let's say this server is firewalled.  In order to `ssh` there, you first need
+to `ssh` into another `gateway`.  Sounds familar doesn't it?  This means you
+end up doing:
+
+```
+$ ssh username@my-company-gateway
+...
+Welcome to your company gateway
+...
+$ ssh username@fancy-server-I-wanted-to-connect-to
+Password:
+...
+```
+
+On this second ssh, what happens? Well, if you typed your password, your
+cleartext password is visible to the gateway.  Yes, it is sent encrypted,
+decrypted, and then through the console driver fed to the `ssh` process.  If a
+keylogged was running, your password would be lost.
+
+Worse: we are back to our original problem, we have to type our password
+multiple times.
+
+
+We could, of course, store our private key on the company gateway and run an
+agent there.  But that would not be a good idea, would it?  Remember: 'your
+private key never leaves your private computer,' you don't want to store it
+on a remote server.
+
+----
+
+!Right way - agent forwarding - Using ssh agent 
+%2
+;2 (with agent forwarding)
+&[[agent forwarding - Using ssh agent]]
+
+So, here's a fancy feature of `ssh` and `ssh-agent`: 'agent forwarding'
+
+On many linux systems, it is enabled by default: but if you pass `-A` to the
+first `ssh` command (or second, or the third, ...) `ssh` will ensure that your
+agent running on your local machine is usable from the remote machine as well.
+
+For example:
+
+```
+$ ssh -A username@my-company-gateway
+...
+Welcome to your company gateway
+...
+$ ssh username@fancy-server-I-wanted-to-connect-to-to-start-with
+...no password asked.  Your key is transparently used.
+```
+
+The second `ssh` here, run from the company gateway, will not ask you for a
+password.  Instead, it will detect the presence of a remote agent, and use
+your private key instead, and ask for no password.
+
+Sound dangerous?  Well, there are some risks associated with it, which we'll
+discuss in another article.  But here is the beauty of the agent:
+
+''Your private key never leaves your local computer.''
+That's right.  By design, the agent never discloses your private key, it never
+ever hands it over to a remote ssh or similar.  Instead `ssh` is designed such
+as when an agent is detected, the information that needs to be encrypted or
+verified through the agent is ''forwarded to the agent''.  That's why it's
+called `agent forwarding`, and that's why it is considered a safer option.
+
+----
+
+!Configuring all this - Using ssh agent 
+%4
+;4 (overview/startup)
+&[[Using ssh agent]]
+
+<<tabs "[tag[Configuring all this - Using ssh agent]sort[order]]">>
+
+----
+
+!Summary - Configuring all this - Using ssh agent 
+%1
+;1 (overview)
+&[[Configuring all this - Using ssh agent]]
+
+So, let's summarize the steps:
+
+#Generate a set of keys, with `ssh-keygen`.
+#Install your keys on remote servers, with `ssh-copy-id`.
+#Start an `ssh-agent` to use on your machine, with `eval ssh-agent`
+#`ssh-add` your key, type your password once.
+#Profit! You can now ssh to any host that has your public key without having o
+enter a password, and use `ssh -A` to forward your agent.
+
+----
+
+!donts - Configuring all this - Using ssh agent
+%2
+;2 (startup donts)
+&[[Configuring all this - Using ssh agent]]
+
+Easy, isn't it?  Where people generally have problems is on how and where to
+start the `ssh-agent`, and when and how to start `ssh-add`.
+
+The long running advice has been to start `ssh-agent` from your `.bashrc` and
+run `ssh-add` similarly.
+
+In today's world most distributions (including Debian and derivatives), just
+start and `ssh-agent` when you first login.  So, you really don't have to do
+anything, except run `ssh-add` when you need your keys loaded, and be done
+with it.
+
+Still many people have snippets to the extent of:
+
+```
+if [ -z ""] ; then 
+    eval `ssh-agent`
+    ssh-add
+fi
+```
+
+in their `.bashrc`, which basically says "is there an ssh-agent already
+running? no? start one, and add my keys".
+
+This is still very annoying: for each console or each session you login into,
+you end up with a new `ssh-agent`.  Worse: this agent will run ''forever''
+with your private keys loaded!  Even long after you logged out.  Nothing and
+nobody will ever kill your agent.
+
+So, your three lines of `.bashrc` snippet soon becomes 10 lines (to cache
+agents on disk), then it breaks the first time you use NFS or any other
+technology to share your home directory, and then...more lines to load only
+some keys, some magic in `.bash_logout` to kill your agent, and your 4 lines
+of simple `.bashrc` get out of control...
+
+----
+
+!dos - Configuring all this - Using ssh agent 
+%3
+;3 (startup dos)
+&[[Configuring all this - Using ssh agent]]
+
+I promised myselft to talk about the pitfalls of using an agent and common
+approaches to solving the most common problems in a dedicated article.  My
+suggestion for now?
+
+*Use the `ssh-agent` tied with your session, and managed by your distro, when
+one is available (just try `ssh-add` and see if it works).
+*@@background-color: red; Use `-t` in `ssh-add` and `ssh-agent`, so your private key is kept in the
+agent for a limited amount of time.  One hour? 5 minutes? you pick.  But at
+the end of that time, your key is gone.@@
+
