@@ -123,12 +123,6 @@ function! GetJobLines(skillz)
 	g/(node)/d
 endfunction
 
-function! SomeShit()
-
-	read!cat sec.txt | xargs -I{} -n 1 node ./index.js skills="  a:skillz  "job=\"[[Database Analyst - Net Tech - MIS - Help Desk]]\" sec=\"{}\""
-	execute "read!cat job.txt | xargs -I{} -n 1 node ./index.js skills=" shellescape(a:skillz) "job=\"[[{}]]\""
-endfunction
-
 function! CleanTw5CP()
 	g/^$/d
 	%s/\W\{4\}//g
